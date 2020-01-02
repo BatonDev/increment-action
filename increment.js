@@ -59,7 +59,7 @@ async function main() {
     console.log(`CURRENT_VERSION_YEAR = ${CURRENT_VERSION_YEAR}`);
     console.log(`CURRENT_VERSION_MONTH = ${CURRENT_VERSION_MONTH}`);
     console.log(`CURRENT_VERSION_PATCH = ${CURRENT_VERSION_PATCH}`);
-    await exec.exec('date', ['+%m'], options);
+    await exec.exec('date', ['+%-m'], options);
     const CURRENT_MONTH = myOutput.trim(); myOutput = '';
     console.log(`CURRENT_MONTH = ${CURRENT_MONTH}`);
     await exec.exec('date', ['+%y'], options);
@@ -68,23 +68,27 @@ async function main() {
 
     // determine next version
     console.log('Incrementing version...');
-    let NEW_MINOR_VERSION = CURRENT_VERSION_PATCH;
+    let NEW_VERSION_YEAR = CURRENT_YEAR;
+    let NEW_VERSION_MONTH = CURRENT_MONTH;
+    let NEW_VERSION_PATCH = CURRENT_VERSION_PATCH;
     if(CURRENT_BRANCH.endsWith('-hotfix')) {
       console.log('incrementing a hotfix branch');
+      NEW_VERSION_YEAR = CURRENT_VERSION_YEAR;
+      NEW_VERSION_MONTH = CURRENT_VERSION_MONTH;
       // if we are incrementing on a hotfix branch, look for the hotfix ID [-HF#]
-      if (CURRENT_VERSION_PATCH.split('-HF') == null) {
-        NEW_MINOR_VERSION = CURRENT_VERSION_PATCH + 'HF0';
+      if (CURRENT_VERSION_PATCH.split('-HF').length < 2) {
+        NEW_VERSION_PATCH = CURRENT_VERSION_PATCH + '-HF0';
       } else {
         const HOTFIX_VERSION_ID = Number(CURRENT_VERSION_PATCH.split('-HF')[1]) + 1;
-        NEW_MINOR_VERSION = CURRENT_VERSION_PATCH.split('-')[0] + '-HF' + HOTFIX_VERSION_ID;
+        NEW_VERSION_PATCH = CURRENT_VERSION_PATCH.split('-')[0] + '-HF' + HOTFIX_VERSION_ID;
       }
     } else{
-      NEW_MINOR_VERSION = (Number(CURRENT_VERSION_PATCH) + 1).toString();
+      NEW_VERSION_PATCH = (Number(CURRENT_VERSION_PATCH) + 1).toString();
       if(CURRENT_VERSION_MONTH != CURRENT_MONTH || CURRENT_VERSION_YEAR != CURRENT_YEAR) {
-        NEW_MINOR_VERSION = '0';
+        NEW_VERSION_PATCH = '0';
       }
     }
-    const NEW_VERSION = CURRENT_YEAR + '.' + CURRENT_MONTH + '.' + NEW_MINOR_VERSION;
+    const NEW_VERSION = NEW_VERSION_YEAR + '.' + NEW_VERSION_MONTH + '.' + NEW_VERSION_PATCH;
     console.log(`NEW_VERSION = ${NEW_VERSION}`);
 
     // commit new version
